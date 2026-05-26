@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAQ — Tronexus</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="icon" href="../img/logo.svg" type="image/svg+xml">
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="nav-brand">
+    <img src="../img/logo.svg" alt="Tronexus">
+    <span>TRONEXUS</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="../index.html">Home</a></li>
+    <li><a href="installation.html">Install</a></li>
+    <li><a href="configuration.html">Config</a></li>
+    <li><a href="auth-api.html">Auth API</a></li>
+    <li><a href="faq.html" class="active">FAQ</a></li>
+    <li><a href="https://github.com/Tronexus/tronexus-stack" class="nav-cta">GitHub</a></li>
+  </ul>
+</nav>
+
+<main>
+  <div class="container" style="padding-top:4rem;padding-bottom:5rem;">
+    <div class="container-narrow">
+
+      <div class="section-label">FAQ</div>
+      <h1 class="section-title" style="margin-bottom:0.5rem;">Frequently Asked Questions</h1>
+      <p style="color:var(--text2);margin-bottom:3rem;">Can't find an answer? <a href="https://github.com/Tronexus/tronexus-stack/discussions" style="color:var(--cyan)">Open a discussion on GitHub.</a></p>
+
+      <h2 style="font-family:var(--font-display);font-size:0.85rem;letter-spacing:0.12em;color:var(--text3);margin-bottom:1rem;border:none;padding:0;margin-top:0;">GENERAL</h2>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggle(this)">
+          What is Tronexus? <span class="arrow">+</span>
+        </button>
+        <div class="faq-answer">
+          Tronexus is an opinionated, production-grade AI infrastructure stack that runs on your own hardware. It bundles local LLM inference, an AI chat interface, workflow automation, authentication, monitoring, and security hardening into a single installable package. You get all the capabilities of a cloud AI platform — without the subscription fees, data privacy concerns, or vendor lock-in.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggle(this)">
+          Is Tronexus free to use? <span class="arrow">+</span>
+        </button>
+        <div class="faq-answer">
+          Yes. Tronexus itself is MIT licensed and free. You run it on your own hardware — the only costs are the hardware you already own and electricity. If you choose to route requests to commercial AI providers (OpenAI, Anthropic, etc.) through LiteLLM, those providers charge per token — but local models via Ollama are entirely free.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggle(this)">
+          How is this different from other self-hosted AI stacks? <span class="arrow">+</span>
+        </button>
+        <div class="faq-answer">
+          Most self-hosted AI projects give you individual containers without integration. Tronexus is different in three ways: it is fully integrated out of the box (services talk to each other), it includes production-grade security from day one (hardened Ubuntu, auth API, TLS, monitoring), and it is designed to be installed with a single command on a fresh machine. You do not spend a week stitching things together.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggle(this)">
+          Why Ubuntu 24.04 LTS specifically? <span class="arrow">+</span>
+        </button>
+        <div class="faq-answer">
+          Ubuntu 24.04 LTS is the current long-term support release with 5-year security coverage. The installer applies hardening that is specific to this release — package names, systemd unit paths, and sysctl values are all tested against 24.04. Other Ubuntu versions and Debian-based distros may work but are not officially supported in v1.
+        </div>
+      </div>
+
+      <h2 style="font-family:var(--font-display);font-size:0.85rem;letter-spacing:0.12em;color:var(--text3);margin:2.5rem 0 1rem;border:none;padding:0;">HARDWARE &amp; MODELS</h2>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggle(this)">
+          What if I don't have an NVIDIA GPU? <span class="arrow">+</span>
+        </button>
+        <div class="faq-answer">
+          Tronexus installs and runs without a GPU. Ollama falls back to CPU inference automatically. Performance will be significantly slower (minutes per response rather than seconds), but it is functional for development, testing, or light use. For production workloads, a GPU is strongly recommended. AMD GPU support is on the roadmap.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggle(this)">
+          Can I use a separate machine for GPU inference? <span class="arrow">+</span>
+        </button>
+        <div class="faq-answer">
+          Yes. This is actually the recommended setup if you have a gaming PC or workstation on the same local network. Install Ollama on the GPU machine, configure it to listen on all interfaces, and set <code>INFERENCE_HOST</code> in your Tronexus <code>.env</code>. Your primary server stays lean and the GPU machine handles all inference. See the <a href="installation.html#remote-inference" style="color:var(--cyan)">Remote Inference</a> section in the installation guide.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggle(this)">
+          Which LLM models work best with Tronexus? <span class="arrow">+</span>
+        </button>
+        <div class="faq-answer">
+          For 8GB VRAM, the sweet spot is 7B–8B parameter models at 4-bit quantisation. Good starting points: <code>mistral:7b-instruct-q4_K_M</code> (fast, well-rounded), <code>llama3:8b</code> (strong reasoning), <code>gemma3:9b</code> (Google's model, good instruction following). For the monitoring summary specifically, Mistral 7B is used by default — it produces clean, concise output. Pull models with <code>docker exec tronexus-ollama ollama pull &lt;model&gt;</code>.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggle(this)">
+          How much disk space do models take? <span class="arrow">+</span>
+        </button>
+        <div class="faq-answer">
+          A 7B model at 4-bit quantisation is roughly 4–5 GB. A 13B model is around 8 GB. Models are stored in the <code>ollama_data</code> Docker volume. For a useful collection of 3–4 models, budget 20–30 GB of storage just for models. The rest of the stack (containers, databases, volumes) uses around 10–15 GB.
+        </div>
+      </div>
+
+      <h2 style="font-family:var(--font-display);font-size:0.85rem;letter-spacing:0.12em;color:var(--text3);margin:2.5rem 0 1rem;border:none;padding:0;">SECURITY</h2>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggle(this)">
+          What does "hardened Ubuntu" mean exactly? <span class="arrow">+</span>
+        </button>
+        <div class="faq-answer">
+          The installer applies these hardening measures automatically: UFW firewall (only SSH, HTTP, HTTPS allowed), fail2ban (SSH brute force protection with automatic banning), SSH configuration hardening (no root login, no password auth, reduced grace time, no X11 forwarding), sysctl network hardening (no ICMP redirects, SYN cookie protection, kernel pointer restriction), and unattended-upgrades for automatic security patches. These are the same measures applied to professional server infrastructure.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggle(this)">
+          I ran the installer and now I can't SSH in. What happened? <span class="arrow">+</span>
+        </button>
+        <div class="faq-answer">
+          The installer disables SSH password authentication and sets <code>PermitRootLogin no</code>. If you did not have an SSH key configured before running the installer, you may be locked out. To recover: access the machine directly (console, KVM, or cloud provider's serial console), log in as root or via the hosting provider's rescue mode, and re-enable password authentication temporarily by editing <code>/etc/ssh/sshd_config</code> and running <code>systemctl restart sshd</code>. Then add your SSH public key to <code>~/.ssh/authorized_keys</code> before disabling password auth again.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggle(this)">
+          Is my data safe if someone gains access to the server? <span class="arrow">+</span>
+        </button>
+        <div class="faq-answer">
+          The stack provides strong perimeter security but does not encrypt data at rest by default. The Postgres database and Ollama model files are stored unencrypted on disk. For sensitive deployments, consider full-disk encryption (LUKS) on the underlying storage. The <code>.env</code> file containing secrets is chmod 600. API keys and passwords are bcrypt hashed in the database — a database dump does not reveal plain credentials.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggle(this)">
+          Does Tronexus send any data to external services? <span class="arrow">+</span>
+        </button>
+        <div class="faq-answer">
+          No data leaves your machine unless you explicitly configure it to. Local LLM inference via Ollama is 100% on-device. Caddy sends ACME challenges to Let's Encrypt to obtain TLS certificates — this is standard HTTPS and involves no user data. Watchtower checks Docker Hub for container image updates. The monitoring script sends alert messages to your Telegram bot — this is opt-in and configured by you. If you add commercial AI provider API keys (OpenAI, Anthropic), requests to those models will be sent to their APIs.
+        </div>
+      </div>
+
+      <h2 style="font-family:var(--font-display);font-size:0.85rem;letter-spacing:0.12em;color:var(--text3);margin:2.5rem 0 1rem;border:none;padding:0;">OPERATIONS</h2>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggle(this)">
+          How do I update Tronexus? <span class="arrow">+</span>
+        </button>
+        <div class="faq-answer">
+          Watchtower automatically updates all containers that pull from public registries (Open WebUI, n8n, LiteLLM, Postgres, etc.) at 3:00 AM daily. The Auth API is a local build and is not updated by Watchtower — update it manually by pulling the latest code and rebuilding: <code>cd /opt/tronexus && git pull && docker compose up -d --build auth</code>.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggle(this)">
+          How do I back up my data? <span class="arrow">+</span>
+        </button>
+        <div class="faq-answer">
+          The critical data to back up is the Postgres database and the <code>.env</code> file. A simple backup: <code>docker exec tronexus-postgres pg_dumpall -U tronexus &gt; /backup/tronexus-$(date +%Y%m%d).sql</code>. n8n workflows are stored in Postgres. Open WebUI conversations are in the <code>openwebui_data</code> volume. Ollama models can be re-pulled and do not need backing up unless you have customised them.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggle(this)">
+          A container keeps restarting. How do I diagnose it? <span class="arrow">+</span>
+        </button>
+        <div class="faq-answer">
+          Check the container logs: <code>docker logs tronexus-&lt;service&gt; --tail 50</code>. Common causes: wrong credentials in <code>.env</code> (check the exact variable names against the configuration reference), port conflict (another service using the same port), or a dependency not being ready (Postgres health check failing). The monitoring script will also catch containers in a restart loop and send a Telegram alert.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggle(this)">
+          Can I add my own services to the stack? <span class="arrow">+</span>
+        </button>
+        <div class="faq-answer">
+          Yes. Add your service to <code>docker-compose.yml</code> under the <code>tronexus</code> network and it will be able to communicate with all existing services by container name. Add a Caddy route in <code>caddy/Caddyfile</code> to expose it via HTTPS. Caddy will automatically obtain a TLS certificate for the new subdomain.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggle(this)">
+          Where does the name Tronexus come from? <span class="arrow">+</span>
+        </button>
+        <div class="faq-answer">
+          It is a compound of <em>Duotronic</em> (the foundational computing architecture of the Federation in Star Trek) and <em>Nexus</em> (the central connection point everything routes through). Duotronic was the computing system that preceded isolinear chips — the technology that made warp navigation and ship intelligence possible. Tronexus is the nexus of your own computing stack.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <a href="../index.html" class="footer-brand">
+        <img src="../img/logo.svg" alt="Tronexus">
+        <span>TRONEXUS</span>
+      </a>
+      <ul class="footer-links">
+        <li><a href="installation.html">Install</a></li>
+        <li><a href="configuration.html">Config</a></li>
+        <li><a href="auth-api.html">Auth API</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+        <li><a href="https://github.com/Tronexus/tronexus-stack">GitHub</a></li>
+      </ul>
+      <span class="footer-copy">MIT License — tronexus.dev</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+function toggle(btn) {
+  const item = btn.parentElement;
+  item.classList.toggle('open');
+}
+</script>
+
+</body>
+</html>

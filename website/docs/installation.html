@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Installation — Tronexus</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="icon" href="../img/logo.svg" type="image/svg+xml">
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="nav-brand">
+    <img src="../img/logo.svg" alt="Tronexus">
+    <span>TRONEXUS</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="../index.html">Home</a></li>
+    <li><a href="installation.html" class="active">Install</a></li>
+    <li><a href="configuration.html">Config</a></li>
+    <li><a href="auth-api.html">Auth API</a></li>
+    <li><a href="faq.html">FAQ</a></li>
+    <li><a href="https://github.com/Tronexus/tronexus-stack" class="nav-cta">GitHub</a></li>
+  </ul>
+</nav>
+
+<main>
+  <div class="container" style="padding-top:3rem;padding-bottom:5rem;">
+    <div class="docs-layout">
+
+      <!-- SIDEBAR -->
+      <aside class="docs-sidebar">
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Installation</div>
+          <ul class="sidebar-links">
+            <li><a href="#requirements" class="active">Requirements</a></li>
+            <li><a href="#quick-install">Quick Install</a></li>
+            <li><a href="#wizard">Configuration Wizard</a></li>
+            <li><a href="#bootstrap">Auth Bootstrap</a></li>
+            <li><a href="#first-model">First Model</a></li>
+            <li><a href="#dns">DNS Setup</a></li>
+            <li><a href="#remote-inference">Remote Inference</a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Other Docs</div>
+          <ul class="sidebar-links">
+            <li><a href="configuration.html">Configuration Reference</a></li>
+            <li><a href="auth-api.html">Auth API Reference</a></li>
+            <li><a href="faq.html">FAQ</a></li>
+          </ul>
+        </div>
+      </aside>
+
+      <!-- CONTENT -->
+      <article class="docs-content">
+        <h1>Installation</h1>
+        <p class="page-meta">Estimated time: 30–60 minutes &nbsp;·&nbsp; Requires: Ubuntu 24.04 LTS, sudo access</p>
+
+        <h2 id="requirements">Requirements</h2>
+        <p>Tronexus runs on a single machine. The minimum hardware to run the full stack with local GPU inference:</p>
+
+        <table class="config-table">
+          <thead><tr><th>Component</th><th>Minimum</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>OS</td><td>Ubuntu 24.04 LTS</td><td>Fresh install recommended</td></tr>
+            <tr><td>RAM</td><td>15 GB</td><td>16–32 GB recommended</td></tr>
+            <tr><td>GPU VRAM</td><td>8 GB NVIDIA</td><td>RTX 3070 or better; CPU-only is possible but slow</td></tr>
+            <tr><td>Storage</td><td>256 GB SSD</td><td>NVMe preferred; models take space</td></tr>
+            <tr><td>Network</td><td>Any broadband</td><td>DNS/DDNS is optional</td></tr>
+          </tbody>
+        </table>
+
+        <div class="alert alert-info">
+          <strong>No GPU?</strong> Tronexus will still install and run. Ollama operates in CPU mode — inference will be slower but functional for development and light use.
+        </div>
+
+        <div class="alert alert-info">
+          <strong>Dedicated inference server?</strong> If you have a separate GPU machine (e.g. a gaming PC or workstation), you can point Tronexus at its Ollama endpoint. See <a href="#remote-inference" style="color:var(--cyan)">Remote Inference</a> below.
+        </div>
+
+        <h2 id="quick-install">Quick Install</h2>
+        <p>On a fresh Ubuntu 24.04 machine, run:</p>
+
+        <pre><code>curl -fsSL https://tronexus.dev/install.sh | sudo bash</code></pre>
+
+        <p>The installer will:</p>
+        <ul>
+          <li>Verify Ubuntu 24.04 LTS</li>
+          <li>Update system packages</li>
+          <li>Apply Ubuntu security hardening (UFW, fail2ban, SSH, sysctl, auto-updates)</li>
+          <li>Install Docker if not present</li>
+          <li>Clone the Tronexus stack to <code>/opt/tronexus</code></li>
+          <li>Run the configuration wizard</li>
+          <li>Start all containers</li>
+          <li>Install the monitoring cron job</li>
+        </ul>
+
+        <div class="alert alert-warning">
+          <strong>SSH hardening note:</strong> The installer disables password authentication for SSH and sets <code>PermitRootLogin no</code>. Ensure you have an SSH key configured before running the installer, or you may lose access.
+        </div>
+
+        <h2 id="wizard">Configuration Wizard</h2>
+        <p>The installer runs an interactive terminal wizard to collect all required configuration values. You will be prompted for:</p>
+
+        <table class="config-table">
+          <thead><tr><th>Prompt</th><th>Example</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Domain</td><td><code>yourdomain.com</code></td><td>Your base domain. All subdomains derive from this.</td></tr>
+            <tr><td>Timezone</td><td><code>Europe/Amsterdam</code></td><td>Used by n8n and monitoring.</td></tr>
+            <tr><td>Postgres username</td><td><code>tronexus</code></td><td>Database user.</td></tr>
+            <tr><td>Postgres password</td><td>—</td><td>Leave blank to auto-generate a secure password.</td></tr>
+            <tr><td>Google OAuth Client ID</td><td><code>xxx.apps.googleusercontent.com</code></td><td>From Google Cloud Console. Required for Auth API.</td></tr>
+            <tr><td>Google OAuth Client Secret</td><td>—</td><td>From Google Cloud Console.</td></tr>
+            <tr><td>pgAdmin email</td><td><code>admin@yourdomain.com</code></td><td>Login for the pgAdmin UI.</td></tr>
+            <tr><td>pgAdmin password</td><td>—</td><td>Leave blank to auto-generate.</td></tr>
+            <tr><td>Telegram bot token</td><td>—</td><td>Optional. From @BotFather. Enables monitoring alerts.</td></tr>
+            <tr><td>Telegram chat ID</td><td>—</td><td>Optional. Your personal chat ID.</td></tr>
+            <tr><td>Remote inference host</td><td><code>192.168.1.x</code></td><td>Optional. IP of a separate Ollama server.</td></tr>
+          </tbody>
+        </table>
+
+        <p>All secrets (JWT, LiteLLM key, WebUI key, n8n key) are generated automatically and written to <code>/opt/tronexus/.env</code>. The file is chmod 600.</p>
+
+        <h2 id="bootstrap">Auth Bootstrap</h2>
+        <p>After the stack is running, create the first application and admin API key:</p>
+
+        <pre><code>sudo bash /opt/tronexus/scripts/bootstrap-auth.sh</code></pre>
+
+        <p>This creates a default app called <code>tronexus</code> and prints an admin API key. Store the key in your password manager — it is displayed once and never stored in plain text.</p>
+
+        <p>The App ID is automatically written to <code>.env</code> as <code>AUTH_APP_ID</code>.</p>
+
+        <h2 id="first-model">Pull Your First Model</h2>
+        <p>Once the stack is running, pull an LLM via Ollama:</p>
+
+        <pre><code># Mistral 7B (recommended starting point, ~4GB)
+docker exec tronexus-ollama ollama pull mistral
+
+# Llama 3 8B (stronger, ~5GB)
+docker exec tronexus-ollama ollama pull llama3
+
+# List available models
+docker exec tronexus-ollama ollama list</code></pre>
+
+        <p>Models are stored in the <code>ollama_data</code> Docker volume and persist across restarts.</p>
+
+        <h2 id="dns">DNS Setup</h2>
+        <p>Tronexus uses the following subdomains. Create DNS A records pointing to your server's public IP for each:</p>
+
+        <table class="config-table">
+          <thead><tr><th>Subdomain</th><th>Service</th></tr></thead>
+          <tbody>
+            <tr><td><code>yourdomain.com</code></td><td>Open WebUI — AI chat interface</td></tr>
+            <tr><td><code>auth-api.yourdomain.com</code></td><td>Tronexus Auth API</td></tr>
+            <tr><td><code>n8n.yourdomain.com</code></td><td>n8n workflow automation</td></tr>
+            <tr><td><code>pgadmin.yourdomain.com</code></td><td>pgAdmin database UI</td></tr>
+          </tbody>
+        </table>
+
+        <p>Caddy will automatically obtain and renew TLS certificates via Let's Encrypt once DNS is pointing correctly.</p>
+
+        <div class="alert alert-info">
+          <strong>Using DDNS?</strong> Services like <a href="https://desec.io" style="color:var(--cyan)">deSEC</a> provide free dynamic DNS. Set a CNAME for each subdomain pointing to your DDNS hostname.
+        </div>
+
+        <h2 id="remote-inference">Remote Inference Server</h2>
+        <p>If you have a separate machine with a GPU, you can run Ollama there and point Tronexus at it. This offloads inference from your main server.</p>
+
+        <p>On the inference machine, install and expose Ollama:</p>
+
+        <pre><code># Install Ollama
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Edit the systemd service to listen on all interfaces
+sudo mkdir -p /etc/systemd/system/ollama.service.d
+cat &lt;&lt; EOF | sudo tee /etc/systemd/system/ollama.service.d/override.conf
+[Service]
+Environment="OLLAMA_HOST=0.0.0.0"
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl restart ollama</code></pre>
+
+        <p>Then set <code>INFERENCE_HOST</code> in your <code>.env</code> to the IP of the inference machine and restart:</p>
+
+        <pre><code>echo "INFERENCE_HOST=192.168.1.x" >> /opt/tronexus/.env
+cd /opt/tronexus && docker compose restart litellm</code></pre>
+
+      </article>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <a href="../index.html" class="footer-brand">
+        <img src="../img/logo.svg" alt="Tronexus">
+        <span>TRONEXUS</span>
+      </a>
+      <ul class="footer-links">
+        <li><a href="installation.html">Install</a></li>
+        <li><a href="configuration.html">Config</a></li>
+        <li><a href="auth-api.html">Auth API</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+        <li><a href="https://github.com/Tronexus/tronexus-stack">GitHub</a></li>
+      </ul>
+      <span class="footer-copy">MIT License — tronexus.dev</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Highlight active sidebar link on scroll
+  const headings = document.querySelectorAll('h2[id]');
+  const links = document.querySelectorAll('.sidebar-links a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    headings.forEach(h => { if (window.scrollY >= h.offsetTop - 100) current = h.id; });
+    links.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  });
+</script>
+
+</body>
+</html>

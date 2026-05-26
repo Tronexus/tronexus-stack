@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auth API — Tronexus</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="icon" href="../img/logo.svg" type="image/svg+xml">
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="nav-brand">
+    <img src="../img/logo.svg" alt="Tronexus">
+    <span>TRONEXUS</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="../index.html">Home</a></li>
+    <li><a href="installation.html">Install</a></li>
+    <li><a href="configuration.html">Config</a></li>
+    <li><a href="auth-api.html" class="active">Auth API</a></li>
+    <li><a href="faq.html">FAQ</a></li>
+    <li><a href="https://github.com/Tronexus/tronexus-stack" class="nav-cta">GitHub</a></li>
+  </ul>
+</nav>
+
+<main>
+  <div class="container" style="padding-top:3rem;padding-bottom:5rem;">
+    <div class="docs-layout">
+
+      <aside class="docs-sidebar">
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Auth API</div>
+          <ul class="sidebar-links">
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#oauth-flow">OAuth Flow</a></li>
+            <li><a href="#tokens">Tokens</a></li>
+            <li><a href="#endpoints">Endpoints</a></li>
+            <li><a href="#apps">Apps &amp; Roles</a></li>
+            <li><a href="#api-keys">API Keys</a></li>
+            <li><a href="#rate-limiting">Rate Limiting</a></li>
+            <li><a href="#security">Security Notes</a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Other Docs</div>
+          <ul class="sidebar-links">
+            <li><a href="installation.html">Installation</a></li>
+            <li><a href="configuration.html">Configuration</a></li>
+            <li><a href="faq.html">FAQ</a></li>
+          </ul>
+        </div>
+      </aside>
+
+      <article class="docs-content">
+        <h1>Auth API Reference</h1>
+        <p class="page-meta">Base URL: <code>https://auth-api.yourdomain.com</code> &nbsp;·&nbsp; Built with FastAPI + asyncpg + Redis</p>
+
+        <h2 id="overview">Overview</h2>
+        <p>The Tronexus Auth API is a standalone authentication service. It provides Google OAuth for human users, JWT-based access tokens, rotating refresh tokens, and API keys for service-to-service authentication.</p>
+        <p>It is designed to serve multiple apps from a single instance. Each app gets its own user namespace and role system.</p>
+
+        <div class="alert alert-success">
+          <strong>Health check:</strong> <code>GET /health</code> returns <code>{"status":"ok"}</code> with no authentication required.
+        </div>
+
+        <h2 id="oauth-flow">OAuth Flow</h2>
+        <p>Tronexus uses the authorization code flow with PKCE. The flow is:</p>
+        <ol>
+          <li>Your app redirects the user to <code>GET /oauth/google?app_id=&lt;your_app_id&gt;</code></li>
+          <li>The Auth API generates a PKCE code challenge and redirects to Google</li>
+          <li>After Google authentication, the user is redirected to <code>/oauth/google/callback</code></li>
+          <li>The Auth API exchanges the code, fetches user info, upserts the user, and returns tokens</li>
+        </ol>
+
+        <pre><code># Initiate OAuth — redirect user to this URL
+GET https://auth-api.yourdomain.com/oauth/google?app_id=43d8b05c-2eaf-4077-9ee1-3602ba8901de
+
+# Response: 302 redirect to Google's OAuth consent screen</code></pre>
+
+        <pre><code># Callback — handled automatically by the Auth API
+# On success returns:
+{
+  "access_token": "eyJhbGciOiJIUzI1NiJ9...",
+  "token_type": "bearer",
+  "expires_in": 900,
+  "refresh_token": "550e8400-e29b-41d4-a716-446655440000.Abc123..."
+}</code></pre>
+
+        <h2 id="tokens">Tokens</h2>
+        <h3>Access Token</h3>
+        <p>JWT signed with HS256. Expires in 15 minutes by default. Contains:</p>
+        <pre><code>{
+  "sub": "user-uuid",
+  "app_id": "app-uuid",
+  "roles": ["admin", "user"],
+  "exp": 1234567890,
+  "iat": 1234567890
+}</code></pre>
+
+        <h3>Refresh Token</h3>
+        <p>Format: <code>token-row-uuid.secret</code>. Stored as a bcrypt hash in Postgres. Rotates on every use. If a used token is presented again, the entire token family is revoked (theft detection).</p>
+
+        <pre><code>POST /auth/refresh
+Content-Type: application/json
+
+{
+  "refresh_token": "550e8400-e29b-41d4-a716-446655440000.Abc123..."
+}
+
+# Response: new access_token + new refresh_token</code></pre>
+
+        <h2 id="endpoints">Endpoints</h2>
+
+        <table class="config-table">
+          <thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>GET</td><td><code>/health</code></td><td>None</td><td>Liveness check</td></tr>
+            <tr><td>GET</td><td><code>/oauth/google</code></td><td>None</td><td>Initiate Google OAuth. Requires <code>app_id</code> query param.</td></tr>
+            <tr><td>GET</td><td><code>/oauth/google/callback</code></td><td>None</td><td>OAuth callback. Handled by Auth API — do not call directly.</td></tr>
+            <tr><td>POST</td><td><code>/auth/refresh</code></td><td>Refresh token</td><td>Rotate refresh token and issue new access token.</td></tr>
+            <tr><td>POST</td><td><code>/auth/logout</code></td><td>Access token</td><td>Revoke all refresh tokens for the current user.</td></tr>
+            <tr><td>GET</td><td><code>/auth/me</code></td><td>Access token</td><td>Current user profile and roles.</td></tr>
+            <tr><td>GET</td><td><code>/apps</code></td><td>Admin API key</td><td>List all registered apps.</td></tr>
+            <tr><td>POST</td><td><code>/apps</code></td><td>Admin API key</td><td>Register a new app.</td></tr>
+            <tr><td>GET</td><td><code>/apps/{id}/roles</code></td><td>Access token</td><td>List roles for an app.</td></tr>
+            <tr><td>POST</td><td><code>/apps/{id}/roles</code></td><td>Admin API key</td><td>Create a role for an app.</td></tr>
+            <tr><td>POST</td><td><code>/apps/{id}/users/{user_id}/roles</code></td><td>Admin API key</td><td>Assign a role to a user.</td></tr>
+            <tr><td>POST</td><td><code>/apikeys</code></td><td>Admin API key</td><td>Create a new API key.</td></tr>
+            <tr><td>DELETE</td><td><code>/apikeys/{id}</code></td><td>Admin API key</td><td>Revoke an API key.</td></tr>
+            <tr><td>POST</td><td><code>/apikeys/verify</code></td><td>None</td><td>Verify an API key and return its claims.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Authentication Header</h3>
+        <p>Pass the access token or API key as a Bearer token:</p>
+        <pre><code>Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...</code></pre>
+
+        <h2 id="apps">Apps &amp; Roles</h2>
+        <p>Apps are namespaces. Each app has its own users and roles. You can run multiple apps from one Auth API instance.</p>
+
+        <pre><code># Create an app
+POST /apps
+Authorization: Bearer ak_your_admin_key
+Content-Type: application/json
+
+{
+  "name": "my-app",
+  "description": "My application"
+}
+
+# Create a role
+POST /apps/{app_id}/roles
+{
+  "name": "admin",
+  "description": "Full access"
+}
+
+# Assign role to user
+POST /apps/{app_id}/users/{user_id}/roles
+{
+  "role_id": "role-uuid"
+}</code></pre>
+
+        <h2 id="api-keys">API Keys</h2>
+        <p>API keys are for service-to-service authentication. They are bcrypt hashed on creation — the plain key is returned once and never stored.</p>
+
+        <pre><code># Create an API key
+POST /apikeys
+Authorization: Bearer ak_your_admin_key
+Content-Type: application/json
+
+{
+  "app_id": "app-uuid",
+  "name": "my-service",
+  "scopes": ["admin"],
+  "expires_in_days": 365
+}
+
+# Response includes the plain key — store it immediately:
+{
+  "id": "key-uuid",
+  "key": "ak_Abc123...",   // shown ONCE
+  "scopes": ["admin"],
+  "expires_at": "2027-01-01T00:00:00Z"
+}
+
+# Verify an API key (for service-to-service)
+POST /apikeys/verify
+Content-Type: application/json
+{
+  "key": "ak_Abc123..."
+}</code></pre>
+
+        <h2 id="rate-limiting">Rate Limiting</h2>
+        <p>Rate limiting uses a Redis sliding window per IP per endpoint. Defaults:</p>
+        <ul>
+          <li>20 requests per 60-second window</li>
+          <li>After 10 violations: 15-minute IP lockout</li>
+          <li>Permanent bans stored in Postgres for repeat offenders</li>
+          <li><code>/health</code> is exempt from rate limiting</li>
+        </ul>
+        <p>Adjust thresholds via <code>.env</code> variables. See <a href="configuration.html#auth" style="color:var(--cyan)">Configuration → Auth API</a>.</p>
+
+        <h2 id="security">Security Notes</h2>
+        <ul>
+          <li>PKCE is enforced on all OAuth flows — authorization code interception is mitigated</li>
+          <li>Refresh token family detection revokes entire session families on replay</li>
+          <li>API keys are bcrypt hashed — compromise of the database does not expose plain keys</li>
+          <li>API keys have mandatory expiry — maximum 365 days from creation</li>
+          <li>Security headers middleware applies HSTS, CSP, X-Frame-Options, and X-Content-Type-Options to all responses</li>
+          <li>Redis is bound to the internal Docker network — no external exposure</li>
+        </ul>
+
+      </article>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <a href="../index.html" class="footer-brand">
+        <img src="../img/logo.svg" alt="Tronexus">
+        <span>TRONEXUS</span>
+      </a>
+      <ul class="footer-links">
+        <li><a href="installation.html">Install</a></li>
+        <li><a href="configuration.html">Config</a></li>
+        <li><a href="auth-api.html">Auth API</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+        <li><a href="https://github.com/Tronexus/tronexus-stack">GitHub</a></li>
+      </ul>
+      <span class="footer-copy">MIT License — tronexus.dev</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

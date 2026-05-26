@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tronexus — Self-Hosted AI Stack</title>
+  <meta name="description" content="A production-grade, security-hardened self-hosted AI stack. Install on your own hardware in under an hour.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="img/logo.svg" type="image/svg+xml">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-brand">
+    <img src="img/logo.svg" alt="Tronexus">
+    <span>TRONEXUS</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html" class="active">Home</a></li>
+    <li><a href="docs/installation.html">Install</a></li>
+    <li><a href="docs/configuration.html">Config</a></li>
+    <li><a href="docs/auth-api.html">Auth API</a></li>
+    <li><a href="docs/faq.html">FAQ</a></li>
+    <li><a href="https://github.com/Tronexus/tronexus-stack" class="nav-cta">GitHub</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-glow"></div>
+    <div class="container hero-content">
+      <div class="hero-badge">v1.0 — Early Access</div>
+      <h1>YOUR AI STACK.<br>YOUR HARDWARE.</h1>
+      <p class="hero-sub">
+        A production-grade, security-hardened AI infrastructure stack.
+        Local LLM inference, workflow automation, and authentication — running on your own machine.
+      </p>
+      <div class="hero-actions">
+        <a href="docs/installation.html" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0zm3.5 7.5h-7a.5.5 0 0 0 0 1h7a.5.5 0 0 0 0-1zm-3-3.5a.5.5 0 0 0-.5.5v6a.5.5 0 0 0 1 0v-6a.5.5 0 0 0-.5-.5z"/></svg>
+          Get Started
+        </a>
+        <a href="https://github.com/Tronexus/tronexus-stack" class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+          View on GitHub
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- INSTALL STRIP -->
+  <div class="install-strip">
+    <div class="container">
+      <div class="install-cmd">
+        <span style="font-family:var(--font-mono);font-size:0.8rem;color:var(--text3);">Quick install on Ubuntu 24.04</span>
+        <code>curl -fsSL https://tronexus.dev/install.sh | sudo bash</code>
+        <button class="copy-btn" onclick="navigator.clipboard.writeText('curl -fsSL https://tronexus.dev/install.sh | sudo bash');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000)">Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section>
+    <div class="container">
+      <div class="section-label">What's included</div>
+      <h2 class="section-title">Everything you need.<br>Nothing you don't.</h2>
+      <p class="section-desc">Pre-integrated, production-tested services that work together out of the box.</p>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🧠</div>
+          <h3>LOCAL LLM INFERENCE</h3>
+          <p>Ollama runs your models locally on your GPU. Route to a dedicated inference server for better performance. No cloud, no cost per token.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💬</div>
+          <h3>AI CHAT INTERFACE</h3>
+          <p>Open WebUI provides a full-featured, multi-model, multi-user interface. Switch models, manage conversations, and invite collaborators.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔀</div>
+          <h3>LLM ROUTING</h3>
+          <p>LiteLLM proxies all model requests through a single OpenAI-compatible API. Mix local and remote models transparently.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>WORKFLOW AUTOMATION</h3>
+          <p>n8n connects your AI stack to the outside world. Build automations, webhooks, and AI-powered pipelines without code.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔐</div>
+          <h3>AUTH API</h3>
+          <p>Google OAuth, JWT tokens with rotation, API keys with mandatory expiry, per-app role management. Built-in, not bolted on.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🛡️</div>
+          <h3>HARDENED UBUNTU</h3>
+          <p>fail2ban, UFW, SSH hardening, automatic security updates, and sysctl tuning applied at install time. Professional-grade security by default.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📡</div>
+          <h3>AUTOMATIC TLS</h3>
+          <p>Caddy handles HTTPS automatically via Let's Encrypt. Zero configuration, automatic renewal, HTTP/2 out of the box.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔔</div>
+          <h3>MONITORING & ALERTS</h3>
+          <p>Daily Telegram alerts with AI-generated summaries. Container health, disk usage, security events, and API key expiry — all covered.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔭</div>
+          <h3>REMOTE INFERENCE</h3>
+          <p>Offload LLM inference to a dedicated GPU machine on your local network. Keeps your primary server lean while maximising GPU utilisation.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HARDWARE -->
+  <section style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+    <div class="container">
+      <div class="section-label">Requirements</div>
+      <h2 class="section-title">Runs on real hardware.</h2>
+      <p class="section-desc">No cloud account. No data leaving your machine. No subscription fees.</p>
+      <div class="hw-grid">
+        <div class="hw-card">
+          <div class="hw-label">OS</div>
+          <div class="hw-value">Ubuntu 24.04 LTS</div>
+        </div>
+        <div class="hw-card">
+          <div class="hw-label">RAM</div>
+          <div class="hw-value">15 GB+</div>
+        </div>
+        <div class="hw-card">
+          <div class="hw-label">GPU VRAM</div>
+          <div class="hw-value">8 GB NVIDIA</div>
+        </div>
+        <div class="hw-card">
+          <div class="hw-label">Storage</div>
+          <div class="hw-value">256 GB SSD</div>
+        </div>
+        <div class="hw-card">
+          <div class="hw-label">DNS</div>
+          <div class="hw-value">Optional</div>
+        </div>
+      </div>
+
+      <div style="margin-top:2.5rem;">
+        <div class="section-label">Stack overview</div>
+        <div class="stack-diagram">
+          <div class="layer">
+            <span class="layer-label">Internet</span>
+            <span class="stack-badge">Caddy — TLS termination + reverse proxy</span>
+          </div>
+          <hr class="stack-divider">
+          <div class="layer">
+            <span class="layer-label">Services</span>
+            <span class="stack-badge">Open WebUI</span>
+            <span class="stack-badge">n8n</span>
+            <span class="stack-badge green">Auth API</span>
+            <span class="stack-badge">pgAdmin</span>
+          </div>
+          <div class="layer">
+            <span class="layer-label">Inference</span>
+            <span class="stack-badge yellow">LiteLLM proxy</span>
+            <span class="stack-badge yellow">Ollama (local or remote GPU)</span>
+          </div>
+          <hr class="stack-divider">
+          <div class="layer">
+            <span class="layer-label">Data</span>
+            <span class="stack-badge">Postgres 16</span>
+            <span class="stack-badge">Redis 7</span>
+          </div>
+          <div class="layer">
+            <span class="layer-label">Ops</span>
+            <span class="stack-badge">Watchtower (auto-updates)</span>
+            <span class="stack-badge">Monitor (Telegram alerts)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section>
+    <div class="container" style="text-align:center;">
+      <div class="section-label">Ready?</div>
+      <h2 class="section-title">Start in under an hour.</h2>
+      <p class="section-desc" style="margin:0 auto 2rem;">
+        Point to a fresh Ubuntu 24.04 machine. Run one command. Your AI stack handles the rest.
+      </p>
+      <div class="hero-actions">
+        <a href="docs/installation.html" class="btn btn-primary">Installation Guide</a>
+        <a href="docs/faq.html" class="btn btn-secondary">Read the FAQ</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <a href="index.html" class="footer-brand">
+        <img src="img/logo.svg" alt="Tronexus">
+        <span>TRONEXUS</span>
+      </a>
+      <ul class="footer-links">
+        <li><a href="docs/installation.html">Install</a></li>
+        <li><a href="docs/configuration.html">Config</a></li>
+        <li><a href="docs/auth-api.html">Auth API</a></li>
+        <li><a href="docs/faq.html">FAQ</a></li>
+        <li><a href="https://github.com/Tronexus/tronexus-stack">GitHub</a></li>
+      </ul>
+      <span class="footer-copy">MIT License — tronexus.dev</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
