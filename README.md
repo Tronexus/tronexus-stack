@@ -19,6 +19,7 @@ A curated, pre-integrated collection of open source services that work together 
 - **Authentication** via Tronexus Auth — Google OAuth, JWT tokens, API keys, role management
 - **Reverse proxy and TLS** via Caddy — automatic HTTPS, zero config
 - **Monitoring and alerts** via a built-in monitor script — Telegram notifications, container health, disk, security
+- **Hardened Ubuntu base** — fail2ban, UFW, SSH hardening, automatic security updates, and audited service configuration out of the box
 - **Remote inference support** — connect a separate GPU machine as your inference backend
 
 Everything runs in Docker. Everything is configured through a single `.env` file.
@@ -103,6 +104,8 @@ Detailed setup guide: [tronexus.dev](https://tronexus.dev)
 **Minimal hardware floor.** Designed to run on a single mid-range machine with a consumer GPU. Cloud-grade hardware is not required.
 
 **Production-grade from day one.** TLS, authentication, monitoring, and automated container recovery are included — not afterthoughts.
+
+**Security is not optional.** Tronexus ships with a hardened Ubuntu 24.04 base — fail2ban, UFW, SSH hardening, automatic security updates, and audited service configuration are part of the default install. The same security standards applied to professional infrastructure are applied here.
 
 ---
 
