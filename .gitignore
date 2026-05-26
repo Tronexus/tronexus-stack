@@ -1,0 +1,15 @@
+# Environment — never commit secrets
+.env
+
+# Docker build artifacts
+auth/__pycache__/
+auth/app/**/__pycache__/
+*.pyc
+
+# Logs
+*.log
+monitor/monitor.log
+
+# OS
+.DS_Store
+Thumbs.db

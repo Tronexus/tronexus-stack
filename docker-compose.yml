@@ -1,0 +1,167 @@
+# =============================================================================
+# TRONEXUS STACK — docker-compose.yml
+# =============================================================================
+# All values are driven by .env — do not hardcode anything here.
+# =============================================================================
+
+services:
+
+  caddy:
+    image: caddy:latest
+    container_name: tronexus-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - tronexus
+
+  postgres:
+    image: postgres:16
+    container_name: tronexus-postgres
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tronexus
+
+  redis:
+    image: redis:7-alpine
+    container_name: tronexus-redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tronexus
+
+  auth:
+    build: ./auth
+    container_name: tronexus-auth
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - tronexus
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: tronexus-ollama
+    restart: unless-stopped
+    volumes:
+      - ollama_data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    networks:
+      - tronexus
+
+  litellm:
+    image: ghcr.io/berriai/litellm:main-latest
+    container_name: tronexus-litellm
+    restart: unless-stopped
+    volumes:
+      - ./litellm/config.yaml:/app/config.yaml
+    env_file:
+      - .env
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+    depends_on:
+      - ollama
+    networks:
+      - tronexus
+
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: tronexus-openwebui
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - OLLAMA_BASE_URL=http://tronexus-litellm:4000
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}
+    volumes:
+      - openwebui_data:/app/backend/data
+    depends_on:
+      - litellm
+    networks:
+      - tronexus
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: tronexus-n8n
+    restart: unless-stopped
+    environment:
+      - N8N_HOST=n8n.${TRONEXUS_DOMAIN}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://n8n.${TRONEXUS_DOMAIN}
+      - N8N_EDITOR_BASE_URL=https://n8n.${TRONEXUS_DOMAIN}
+      - GENERIC_TIMEZONE=${TZ}
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - N8N_BASIC_AUTH_ACTIVE=${N8N_BASIC_AUTH_ACTIVE}
+      - N8N_PROXY_HOPS=1
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - tronexus
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: tronexus-pgadmin
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - tronexus
+
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: tronexus-watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_SCHEDULE=0 0 3 * * *
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_LABEL_ENABLE=true
+    networks:
+      - tronexus
+
+volumes:
+  caddy_data:
+  caddy_config:
+  postgres_data:
+  openwebui_data:
+  ollama_data:
+  n8n_data:
+  pgadmin_data:
+
+networks:
+  tronexus:

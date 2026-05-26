@@ -1,0 +1,32 @@
+# =============================================================================
+# TRONEXUS STACK — LiteLLM Configuration
+# =============================================================================
+# LiteLLM proxies requests to local Ollama and optionally remote providers.
+# Add remote provider API keys to your .env file to enable them.
+# =============================================================================
+
+model_list:
+  # Local Ollama models
+  - model_name: mistral
+    litellm_params:
+      model: ollama/mistral:7b-instruct-q4_K_M
+      api_base: http://tronexus-ollama:11434
+
+  - model_name: llama3
+    litellm_params:
+      model: ollama/llama3
+      api_base: http://tronexus-ollama:11434
+
+  # Uncomment and configure for remote providers
+  # - model_name: gpt-4o
+  #   litellm_params:
+  #     model: gpt-4o
+  #     api_key: os.environ/OPENAI_API_KEY
+
+  # - model_name: claude-sonnet
+  #   litellm_params:
+  #     model: anthropic/claude-sonnet-4-20250514
+  #     api_key: os.environ/ANTHROPIC_API_KEY
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY

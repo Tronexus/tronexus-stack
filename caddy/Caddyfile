@@ -1,0 +1,38 @@
+# =============================================================================
+# TRONEXUS STACK — Caddyfile
+# =============================================================================
+# Caddy handles TLS automatically via Let's Encrypt.
+# All domains are derived from TRONEXUS_DOMAIN in your .env file.
+# =============================================================================
+
+# Auth API — manages its own authentication
+auth-api.{$TRONEXUS_DOMAIN} {
+    reverse_proxy tronexus-auth:8002
+}
+
+# Open WebUI — main AI interface
+{$TRONEXUS_DOMAIN} {
+    @unprotected path /api/* /ws/* /static/* /assets/*
+    handle @unprotected {
+        reverse_proxy tronexus-openwebui:8080
+    }
+    handle {
+        reverse_proxy tronexus-openwebui:8080
+    }
+}
+
+# n8n — webhook endpoints are public, UI is protected
+n8n.{$TRONEXUS_DOMAIN} {
+    @unprotected path /rest/* /webhook/* /webhook-test/*
+    handle @unprotected {
+        reverse_proxy tronexus-n8n:5678
+    }
+    handle {
+        reverse_proxy tronexus-n8n:5678
+    }
+}
+
+# pgAdmin — database management UI
+pgadmin.{$TRONEXUS_DOMAIN} {
+    reverse_proxy tronexus-pgadmin:80
+}
