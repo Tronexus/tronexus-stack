@@ -49,12 +49,11 @@ A second machine can be used as a dedicated inference server — Tronexus suppor
 
 ## Quick start
 
-> Full installer coming soon. For now, clone and configure manually.
-Or run this command on your Ubuntu Server:
+> Full installer coming soon. For now, run this command on your Ubuntu Server
 ```bash
 curl -fsSL https://tronexus.dev/install.sh -o install.sh && sudo bash install.sh
 ```
-
+Or clone and configure manually.
 ```bash
 git clone https://github.com/Tronexus/tronexus-stack
 cd tronexus-stack
