@@ -8,6 +8,11 @@ Named after the foundational computing architecture of the Federation, Tronexus 
 
 ---
 
+## Version
+Alpha release v0.1
+
+Please report any issues or bugs, I will be more than happy to help you.
+
 ## What it is
 
 A curated, pre-integrated collection of open source services that work together out of the box:
