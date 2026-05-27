@@ -6,9 +6,8 @@
 # Run as root or with sudo.
 #
 # Usage:
-#   curl -fsSL https://tronexus.dev/install.sh | sudo bash
-#   — or —
-#   sudo bash install.sh
+#   curl -fsSL https://tronexus.dev/install.sh -o install.sh && sudo bash install.sh
+#
 # =============================================================================
 
 set -e
