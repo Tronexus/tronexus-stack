@@ -100,7 +100,7 @@ for key in "${!SSH_SETTINGS[@]}"; do
     fi
 done
 
-systemctl reload sshd
+systemctl reload ssh 2>/dev/null || systemctl reload sshd 2>/dev/null || true
 log "SSH hardened"
 
 # UFW firewall
