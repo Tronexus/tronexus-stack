@@ -37,12 +37,26 @@ fi
 
 # ── Container logs — errors in last 24h ─────────────────────────────────────
 for container in $(docker ps --format "{{.Names}}"); do
-    ERRORS=$(docker logs --since 24h "$container" 2>&1 | grep -iE "error|fatal|critical" | grep -viE "deprecat|warn|info|health" | wc -l)
+    ERRORS=$(docker logs --since 24h "$container" 2>&1 | grep -iE "error|fatal|critical" | grep -viE "deprecat|warn|info|health|handshake error|no certificate available" | wc -l)
     if [ "$ERRORS" -gt 50 ]; then
         FINDINGS="${FINDINGS}LOGS: ${container}: ${ERRORS} error lines in last 24h\n"
         ALL_OK=false
     fi
 done
+
+# ── TLS handshake scan volume (attack indicator) ─────────────────────────────
+# A public-facing 443 gets constant background scanning (incomplete-TLS probes,
+# bogus SNI). Caddy logs these as "handshake error". That noise is excluded from
+# the error counter above; here we alert only on an unusual SPIKE, reported as
+# SECURITY rather than a log error. Calibrate HANDSHAKE_SCAN_THRESHOLD in .env to
+# roughly 2x your server's normal daily count. Check your baseline with:
+#   docker logs --since 24h tronexus-caddy 2>&1 | grep -c "handshake error"
+HANDSHAKE_SCAN_THRESHOLD="${HANDSHAKE_SCAN_THRESHOLD:-10000}"
+HANDSHAKE_SCANS=$(docker logs --since 24h tronexus-caddy 2>&1 | grep -ic "handshake error")
+if [ "$HANDSHAKE_SCANS" -gt "$HANDSHAKE_SCAN_THRESHOLD" ]; then
+    FINDINGS="${FINDINGS}SECURITY: Unusually high TLS scan volume - ${HANDSHAKE_SCANS} handshake probes in 24h (threshold ${HANDSHAKE_SCAN_THRESHOLD})\n"
+    ALL_OK=false
+fi
 
 # ── Disk usage ───────────────────────────────────────────────────────────────
 DISK_USAGE=$(df / | awk 'NR==2 {print $5}' | tr -d '%')
