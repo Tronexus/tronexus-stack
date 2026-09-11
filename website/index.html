@@ -31,7 +31,7 @@
   <section class="hero">
     <div class="hero-glow"></div>
     <div class="container hero-content">
-      <div class="hero-badge">v0.2 — Alpha</div>
+      <div class="hero-badge" id="version-badge">v0.2 — Alpha</div>
       <h1>YOUR AI STACK.<br>YOUR HARDWARE.</h1>
       <p class="hero-sub">
         A production-grade, security-hardened AI infrastructure stack.
@@ -219,5 +219,19 @@
   </div>
 </footer>
 
+  <script>
+    // Version badge is driven by the VERSION file at the repo root, copied into the
+    // web root on deploy. Falls back to the static text above if it is missing.
+    fetch('/VERSION', {cache: 'no-store'})
+      .then(r => r.ok ? r.text() : Promise.reject())
+      .then(v => {
+        v = v.trim();
+        if (/^\d+(\.\d+)*$/.test(v)) {
+          document.getElementById('version-badge').textContent =
+            'v' + v + (v.startsWith('0.') ? ' — Alpha' : '');
+        }
+      })
+      .catch(() => {});
+  </script>
 </body>
 </html>

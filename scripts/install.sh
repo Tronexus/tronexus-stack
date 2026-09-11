@@ -213,7 +213,8 @@ else
     git clone "$REPO_URL" "$TRONEXUS_DIR" >> "$LOG_FILE" 2>&1
 fi
 
-log "Tronexus stack cloned to ${TRONEXUS_DIR}"
+TRONEXUS_VERSION=$(cat "${TRONEXUS_DIR}/VERSION" 2>/dev/null || echo "unknown")
+log "Tronexus stack v${TRONEXUS_VERSION} cloned to ${TRONEXUS_DIR}"
 
 # =============================================================================
 # CONFIGURATION WIZARD
@@ -438,7 +439,7 @@ log "${RUNNING}/${TOTAL} containers running"
 # =============================================================================
 header "Installation Complete"
 
-echo -e "${GREEN}${BOLD}Tronexus stack is running.${NC}\n"
+echo -e "${GREEN}${BOLD}Tronexus stack v${TRONEXUS_VERSION} is running.${NC}\n"
 echo -e "Your services are available at:\n"
 echo -e "  ${CYAN}AI Interface:${NC}    https://${TRONEXUS_DOMAIN}"
 echo -e "  ${CYAN}Auth API:${NC}        https://auth-api.${TRONEXUS_DOMAIN}/health"

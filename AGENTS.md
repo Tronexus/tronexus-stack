@@ -67,6 +67,13 @@ stack that installs on a single Linux machine via Docker Compose (see `README.md
 - `website/` — marketing/docs site · `docs/` — documentation
 - `docker-compose.yml` · `.env.example`
 
+## Releasing
+- Version lives in **`VERSION`** (plain `MAJOR.MINOR[.PATCH]`, no `v`). It is the single
+  source: the installer prints it, and the website badge loads `/VERSION` at runtime (the
+  deploy copies the file into the web root). Do not hardcode version numbers elsewhere.
+- Release steps: bump `VERSION`, add a `CHANGELOG.md` section, commit, tag `v<VERSION>`,
+  push branch and tag, deploy the website.
+
 ## Common tasks
 - **Add a service:** define it in `docker-compose.yml` (name `tronexus-<x>`, `tronexus`
   network), add a Caddy block using `${TRONEXUS_DOMAIN}`, and document any new config in

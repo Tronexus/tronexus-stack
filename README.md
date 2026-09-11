@@ -9,7 +9,8 @@ Named after the foundational computing architecture of the Federation, Tronexus 
 ---
 
 ## Version
-Alpha release v0.2 — see [CHANGELOG.md](CHANGELOG.md)
+The current version is in [`VERSION`](VERSION); changes per release are in
+[CHANGELOG.md](CHANGELOG.md). Releases below 1.0 are alpha.
 
 Please report any issues or bugs, I will be more than happy to help you.
 

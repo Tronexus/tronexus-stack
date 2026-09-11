@@ -24,6 +24,8 @@ Theme: the stack should be up at any time. An update must never become an outage
   a package requires it and no user is logged in. The wizard asks for it (default: yes).
 
 ### Added
+- `VERSION` file as the single source of the release number; the installer prints it and
+  the website badge reads it at runtime.
 - `monitor.sh`: dedicated SECURITY alert for unusual TLS handshake scan volume on port 443
   (`HANDSHAKE_SCAN_THRESHOLD` in `.env`); this noise is excluded from the generic error count.
 - `AGENTS.md`: repository guide for AI tooling, including the image tag policy.
