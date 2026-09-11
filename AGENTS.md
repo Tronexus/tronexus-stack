@@ -16,16 +16,24 @@ stack that installs on a single Linux machine via Docker Compose (see `README.md
 ## Services (all on the `tronexus` Docker network)
 | Container | Image | Purpose | Port |
 |---|---|---|---|
-| tronexus-caddy | caddy:latest | Reverse proxy + automatic TLS (Let's Encrypt) | 80, 443 |
+| tronexus-caddy | caddy:2 | Reverse proxy + automatic TLS (Let's Encrypt) | 80, 443 |
 | tronexus-auth | ./auth (build) | Custom auth API — Google OAuth + JWT | 8002 |
 | tronexus-postgres | postgres:16 | Database (auth, apps) | internal |
 | tronexus-redis | redis:7-alpine | Cache / rate-limiting | internal |
-| tronexus-ollama | ollama/ollama | Local LLM inference (NVIDIA GPU) | 11434 |
-| tronexus-litellm | berriai/litellm | Model gateway in front of Ollama/remote | 4000 |
-| tronexus-openwebui | open-webui | Main AI chat UI | 8080 |
-| tronexus-n8n | n8nio/n8n | Automation / workflows | 5678 |
-| tronexus-pgadmin | dpage/pgadmin4 | DB admin UI | 80 |
-| tronexus-watchtower | containrrr/watchtower | Auto-updates (label-enabled, 03:00) | — |
+| tronexus-ollama | ollama/ollama:latest (deliberate) | Local LLM inference (NVIDIA GPU) | 11434 |
+| tronexus-litellm | berriai/litellm:main-stable | Model gateway in front of Ollama/remote | 4000 |
+| tronexus-openwebui | open-webui:0.11 (manual bump) | Main AI chat UI | 8080 |
+| tronexus-n8n | n8nio/n8n:2.38.6 (manual bump) | Automation / workflows | 5678 |
+| tronexus-pgadmin | dpage/pgadmin4:9 | DB admin UI | 80 |
+| tronexus-watchtower | containrrr/watchtower:1.7.1 | Auto-updates within pinned tags (03:00) | — |
+
+## Image tag policy
+- **Stability over latest.** Every pulled image is pinned to a tag that receives
+  patch/minor updates but never crosses a major boundary; Watchtower updates within
+  that tag nightly. `open-webui` (minor tag) and `n8n` (exact) have no rolling tag and
+  are bumped by hand after reading release notes; `ollama` stays on `latest` on purpose.
+- Never reintroduce `latest`, `main` or `main-latest` for a pulled image. When adding a
+  service, pick the major tag if the project publishes one, otherwise the exact version.
 
 ## Routing & TLS (`caddy/Caddyfile`)
 - Hostnames derive from `${TRONEXUS_DOMAIN}`: apex → openwebui, `auth-api.` → auth,

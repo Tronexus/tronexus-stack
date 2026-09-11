@@ -2,12 +2,22 @@
 # TRONEXUS STACK — docker-compose.yml
 # =============================================================================
 # All values are driven by .env — do not hardcode anything here.
+#
+# IMAGE TAG POLICY (stability over latest)
+#   Every pulled image is pinned to a tag that receives patch/minor updates
+#   but never crosses a major (breaking) boundary. Watchtower applies updates
+#   within that tag nightly at 03:00. Images without a rolling tag are pinned
+#   to an exact version and must be bumped by hand (see CHANGELOG / docs):
+#     open-webui  -> bump the minor tag (0.x) after reading the release notes
+#     n8n         -> bump the exact version (no rolling tag published)
+#   ollama stays on :latest on purpose: its API is stable and new models
+#   regularly require the newest release.
 # =============================================================================
 
 services:
 
   caddy:
-    image: caddy:latest
+    image: caddy:2                       # major tag
     container_name: tronexus-caddy
     restart: unless-stopped
     ports:
@@ -63,7 +73,7 @@ services:
       - tronexus
 
   ollama:
-    image: ollama/ollama:latest
+    image: ollama/ollama:latest          # deliberate exception, see header
     container_name: tronexus-ollama
     restart: unless-stopped
     volumes:
@@ -79,7 +89,7 @@ services:
       - tronexus
 
   litellm:
-    image: ghcr.io/berriai/litellm:main-latest
+    image: ghcr.io/berriai/litellm:main-stable   # tested release channel (main-latest is nightly)
     container_name: tronexus-litellm
     restart: unless-stopped
     volumes:
@@ -93,7 +103,7 @@ services:
       - tronexus
 
   openwebui:
-    image: ghcr.io/open-webui/open-webui:main
+    image: ghcr.io/open-webui/open-webui:0.11   # minor tag, bump manually
     container_name: tronexus-openwebui
     restart: unless-stopped
     env_file:
@@ -109,7 +119,7 @@ services:
       - tronexus
 
   n8n:
-    image: n8nio/n8n:latest
+    image: n8nio/n8n:2.38.6              # exact, bump manually
     container_name: tronexus-n8n
     restart: unless-stopped
     environment:
@@ -128,7 +138,7 @@ services:
       - tronexus
 
   pgadmin:
-    image: dpage/pgadmin4:latest
+    image: dpage/pgadmin4:9              # major tag
     container_name: tronexus-pgadmin
     restart: always
     depends_on:
@@ -142,7 +152,7 @@ services:
       - tronexus
 
   watchtower:
-    image: containrrr/watchtower:latest
+    image: containrrr/watchtower:1.7.1   # project archived upstream, final release
     container_name: tronexus-watchtower
     restart: unless-stopped
     volumes:
@@ -150,7 +160,8 @@ services:
     environment:
       - WATCHTOWER_SCHEDULE=0 0 3 * * *
       - WATCHTOWER_CLEANUP=true
-      - WATCHTOWER_LABEL_ENABLE=true
+      # Updates every pulled image within its pinned tag (see header). Locally
+      # built images (auth) are never touched by Watchtower.
     networks:
       - tronexus
 
