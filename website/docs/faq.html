@@ -153,7 +153,25 @@
           How do I update Tronexus? <span class="arrow">+</span>
         </button>
         <div class="faq-answer">
-          Watchtower automatically updates all containers that pull from public registries (Open WebUI, n8n, LiteLLM, Postgres, etc.) at 3:00 AM daily. The Auth API is a local build and is not updated by Watchtower — update it manually by pulling the latest code and rebuilding: <code>cd /opt/tronexus && git pull && docker compose up -d --build auth</code>.
+          Every image in <code>docker-compose.yml</code> is pinned to a tag that receives patch and minor updates but never a breaking major release. Watchtower applies those updates nightly at 03:00. Two services have no such tag and are bumped by hand after reading their release notes: Open WebUI (minor tag, e.g. <code>0.11</code>) and n8n (exact version). The Auth API is a local build: <code>cd /opt/tronexus && git pull && docker compose up -d --build auth</code>. Never move a tag backwards; see <a href="configuration.html#updates">Updates &amp; Reboots</a>.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggle(this)">
+          Does the server reboot on its own? <span class="arrow">+</span>
+        </button>
+        <div class="faq-answer">
+          Only if you said yes in the installer (the default). Ubuntu installs security and regular updates daily; when one of them requires a restart, the server reboots at 04:30, and only if nobody is logged in over SSH. All containers come back automatically. Firmware and BIOS updates are never applied automatically. Policy file: <code>/etc/apt/apt.conf.d/52-tronexus</code>.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggle(this)">
+          My site suddenly returns Cloudflare error 522 but the server is fine. <span class="arrow">+</span>
+        </button>
+        <div class="faq-answer">
+          Your public IP most likely changed and a static A record still points at the old address. Compare <code>curl -s4 https://api.ipify.org</code> on the server with the record at your DNS provider. Fix the record, then make it permanent by pointing every hostname as a CNAME at a dynamic DNS name, as described in <a href="installation.html#dns-dynamic-ip">Dynamic IP / DDNS</a>.
         </div>
       </div>
 

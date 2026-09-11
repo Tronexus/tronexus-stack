@@ -9,7 +9,7 @@ Named after the foundational computing architecture of the Federation, Tronexus 
 ---
 
 ## Version
-Alpha release v0.1
+Alpha release v0.2 — see [CHANGELOG.md](CHANGELOG.md)
 
 Please report any issues or bugs, I will be more than happy to help you.
 
@@ -93,7 +93,8 @@ Detailed setup guide: [tronexus.dev](https://tronexus.dev)
 
 ## Roadmap
 
-- [ ] Bootstrap installer script (single `curl | bash` command)
+- [x] Bootstrap installer script (single `curl | bash` command)
+- [x] Stable update policy: pinned image tags, OS updates with conditional automatic reboot
 - [ ] Bootable ISO installer for fresh Ubuntu 24.04 installs
 - [ ] Web-based management UI for container control and config
 - [ ] Built-in documentation site (self-hosted, runs in the stack)

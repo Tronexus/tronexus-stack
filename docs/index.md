@@ -9,3 +9,6 @@
 - [Auth API Reference](auth-api.md)
 - [Remote Inference Setup](remote-inference.md)
 - [Monitoring Setup](monitoring.md)
+- [Updates & Reboots](https://tronexus.dev/docs/configuration.html#updates)
+- [Dynamic IP / DDNS](https://tronexus.dev/docs/installation.html#dns-dynamic-ip)
+- [Changelog](../CHANGELOG.md)

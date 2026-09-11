@@ -44,6 +44,7 @@
             <li><a href="#pgadmin">pgAdmin</a></li>
             <li><a href="#monitoring">Monitoring</a></li>
             <li><a href="#litellm-models">Adding Models</a></li>
+            <li><a href="#updates">Updates &amp; Reboots</a></li>
           </ul>
         </div>
         <div class="sidebar-section">
@@ -219,6 +220,60 @@ docker compose restart auth</code></pre>
 
         <p>After editing, restart LiteLLM:</p>
         <pre><code>cd /opt/tronexus && docker compose restart litellm</code></pre>
+
+        <h2 id="updates">Updates &amp; Reboots</h2>
+        <p>Tronexus is built for stability: the stack should be up at any time, and an update must never turn into an outage. Updates happen on three independent layers, each with its own tool.</p>
+
+        <table class="config-table">
+          <thead><tr><th>Layer</th><th>Tool</th><th>When</th><th>What it covers</th></tr></thead>
+          <tbody>
+            <tr><td>Containers</td><td>Watchtower</td><td>Daily 03:00</td><td>Every pulled image, within its pinned tag. Never the locally built Auth API.</td></tr>
+            <tr><td>Operating system</td><td>unattended-upgrades</td><td>Daily (early morning)</td><td>Ubuntu security and regular updates, removal of unused dependencies.</td></tr>
+            <tr><td>Firmware / BIOS</td><td>fwupd</td><td>Manual</td><td>Never automatic. Run <code>fwupdmgr get-upgrades</code> and apply deliberately.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Image tag policy</h3>
+        <p>Every image in <code>docker-compose.yml</code> is pinned to a tag that still receives patch and minor updates but never crosses a major, breaking boundary. Watchtower keeps applying fixes inside that tag; a breaking release can only arrive when you change the tag yourself.</p>
+
+        <table class="config-table">
+          <thead><tr><th>Service</th><th>Tag</th><th>Update behaviour</th></tr></thead>
+          <tbody>
+            <tr><td>Caddy</td><td><code>caddy:2</code></td><td>Automatic within major 2</td></tr>
+            <tr><td>Postgres</td><td><code>postgres:16</code></td><td>Automatic within major 16 (a major upgrade needs a data migration)</td></tr>
+            <tr><td>Redis</td><td><code>redis:7-alpine</code></td><td>Automatic within major 7</td></tr>
+            <tr><td>LiteLLM</td><td><code>litellm:main-stable</code></td><td>Automatic, tested release channel (not the nightly <code>main-latest</code>)</td></tr>
+            <tr><td>pgAdmin</td><td><code>pgadmin4:9</code></td><td>Automatic within major 9</td></tr>
+            <tr><td>Open WebUI</td><td><code>open-webui:0.11</code></td><td><strong>Manual bump</strong> of the minor tag; 0.x minors can be breaking</td></tr>
+            <tr><td>n8n</td><td><code>n8n:2.38.6</code></td><td><strong>Manual bump</strong>; n8n publishes no rolling tag</td></tr>
+            <tr><td>Ollama</td><td><code>ollama:latest</code></td><td>Automatic; deliberate exception, new models need the newest release</td></tr>
+            <tr><td>Watchtower</td><td><code>watchtower:1.7.1</code></td><td>Pinned; the project is archived upstream</td></tr>
+          </tbody>
+        </table>
+
+        <div class="alert alert-warning">
+          <strong>Never downgrade a tag.</strong> Open WebUI and n8n migrate their database forward on start. Running an older image against a newer database fails with schema errors (for example <code>no such column: config.id</code>). Check the running version before changing a tag: <code>docker exec tronexus-openwebui sh -c 'grep -m1 version /app/package.json'</code>.
+        </div>
+
+        <p>To bump a manually pinned service: read the project's release notes, edit the tag in <code>docker-compose.yml</code>, then:</p>
+        <pre><code>cd /opt/tronexus && docker compose pull openwebui && docker compose up -d openwebui
+docker logs tronexus-openwebui --tail 30   # confirm a clean start</code></pre>
+
+        <h3>OS updates and automatic reboot</h3>
+        <p>The installer writes the site policy to <code>/etc/apt/apt.conf.d/52-tronexus</code>. It never edits the packaged <code>50unattended-upgrades</code>, so package upgrades cannot conflict with your settings.</p>
+        <pre><code>Unattended-Upgrade::Allowed-Origins:: "${distro_id}:${distro_codename}-updates";
+Unattended-Upgrade::Remove-Unused-Dependencies "true";
+Unattended-Upgrade::Automatic-Reboot "true";
+Unattended-Upgrade::Automatic-Reboot-WithUsers "false";
+Unattended-Upgrade::Automatic-Reboot-Time "04:30";</code></pre>
+        <p>A reboot happens only when a package sets <code>/var/run/reboot-required</code> (typically a kernel or glibc update), at 04:30, and never while someone is logged in over SSH; otherwise it is deferred to the next day. Watchtower runs at 03:00, so container updates settle before any reboot. All Tronexus containers use <code>restart: unless-stopped</code> and come back on their own.</p>
+        <p>To change the policy, edit <code>52-tronexus</code> and verify with:</p>
+        <pre><code>apt-config dump Unattended-Upgrade::Allowed-Origins Unattended-Upgrade::Automatic-Reboot Unattended-Upgrade::Automatic-Reboot-Time
+sudo unattended-upgrade --dry-run</code></pre>
+
+        <div class="alert alert-info">
+          <strong>Upgrading from v0.1?</strong> The old installer replaced <code>50unattended-upgrades</code> and disabled reboots. Re-running <code>install.sh</code> restores the packaged file and writes <code>52-tronexus</code>. Pull the pinned compose file with <code>cd /opt/tronexus && git pull && docker compose pull && docker compose up -d</code>; check the Open WebUI version first (see the warning above) and raise its tag if you are already past 0.11.
+        </div>
 
       </article>
     </div>

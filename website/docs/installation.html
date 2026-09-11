@@ -39,6 +39,8 @@
             <li><a href="#bootstrap">Auth Bootstrap</a></li>
             <li><a href="#first-model">First Model</a></li>
             <li><a href="#dns">DNS Setup</a></li>
+            <li><a href="#dns-dynamic-ip" style="padding-left:1.25rem">Dynamic IP / DDNS</a></li>
+            <li><a href="#dns-mail" style="padding-left:1.25rem">Mail spoofing</a></li>
             <li><a href="#remote-inference">Remote Inference</a></li>
           </ul>
         </div>
@@ -160,9 +162,30 @@ docker exec tronexus-ollama ollama list</code></pre>
 
         <p>Caddy will automatically obtain and renew TLS certificates via Let's Encrypt once DNS is pointing correctly.</p>
 
-        <div class="alert alert-info">
-          <strong>Using DDNS?</strong> Services like <a href="https://desec.io" style="color:var(--cyan)">deSEC</a> provide free dynamic DNS. Set a CNAME for each subdomain pointing to your DDNS hostname.
+        <h3 id="dns-dynamic-ip">Home connection with a dynamic IP</h3>
+        <p>Most consumer connections change their public IP now and then, typically after provider maintenance or a modem restart. A static A record keeps pointing at the old address and every hostname on it goes dark, even though the server itself is healthy. Behind Cloudflare this shows up as <strong>error 522 (connection timed out)</strong>; without a proxy, browsers simply time out.</p>
+        <p>The fix is to have exactly one record that tracks your IP, and to make every other name follow it:</p>
+        <ol>
+          <li>Register a free dynamic DNS hostname, for example at <a href="https://desec.io" style="color:var(--cyan)">deSEC</a> (<code>myserver.dedyn.io</code>), and run its update client on the Tronexus host or your router so the record follows your IP automatically.</li>
+          <li>Create every Tronexus hostname as a <strong>CNAME</strong> to that DDNS name instead of an A record with the IP typed in. For the apex (<code>yourdomain.com</code>) your DNS provider must support CNAME flattening (Cloudflare does; deSEC and most modern providers do as well).</li>
+          <li>If you use Cloudflare's proxy (orange cloud), keep it on for the CNAMEs. Cloudflare re-resolves the DDNS name when it connects to your origin, so an IP change is picked up within minutes without any API integration on your side.</li>
+        </ol>
+
+        <div class="alert alert-warning">
+          <strong>Never mix the two.</strong> If some hostnames are CNAMEs to your DDNS name and others are static A records, the A records will silently break at the next IP change while everything else keeps working. Make all of them CNAMEs.
         </div>
+
+        <h3 id="dns-mail">Protect your domain against mail spoofing</h3>
+        <p>Tronexus does not send or receive e-mail, but anyone can forge messages that appear to come from <code>@yourdomain.com</code> unless your DNS says otherwise. Three records close that door and take a minute to add:</p>
+        <table class="config-table">
+          <thead><tr><th>Type</th><th>Name</th><th>Content</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>MX</td><td><code>@</code></td><td><code>.</code> (priority 0)</td><td>Null MX: the domain accepts no mail (RFC 7505)</td></tr>
+            <tr><td>TXT</td><td><code>@</code></td><td><code>v=spf1 -all</code></td><td>No host is authorised to send as this domain</td></tr>
+            <tr><td>TXT</td><td><code>_dmarc</code></td><td><code>v=DMARC1; p=reject; adkim=s; aspf=s</code></td><td>Receivers reject anything claiming to be from you</td></tr>
+          </tbody>
+        </table>
+        <p>Verify from the server: <code>dig +short yourdomain.com MX</code>, <code>dig +short yourdomain.com TXT</code>, <code>dig +short _dmarc.yourdomain.com TXT</code>. If you later do want to send mail from the domain, replace these with records for your mail provider.</p>
 
         <h2 id="remote-inference">Remote Inference Server</h2>
         <p>If you have a separate machine with a GPU, you can run Ollama there and point Tronexus at it. This offloads inference from your main server.</p>
