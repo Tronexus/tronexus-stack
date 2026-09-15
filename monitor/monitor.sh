@@ -35,11 +35,24 @@ if [ -n "$RESTARTING" ]; then
     ALL_OK=false
 fi
 
-# ── Container logs — errors in last 24h ─────────────────────────────────────
+# ── Container logs — recurring errors in last 24h ────────────────────────────
+# Count DISTINCT error signatures, not raw lines: one multi-line stack trace
+# would otherwise be counted many times (a single Node "fetch failed" trace is
+# 5-15 matching lines). Timestamps, numbers and hex are normalised out so
+# repeats of the same error collapse into one signature. Alert when any single
+# signature recurs more than ERROR_SIGNATURE_THRESHOLD times, and name it so the
+# report is actionable rather than just a line count.
+ERROR_SIGNATURE_THRESHOLD="${ERROR_SIGNATURE_THRESHOLD:-5}"
 for container in $(docker ps --format "{{.Names}}"); do
-    ERRORS=$(docker logs --since 24h "$container" 2>&1 | grep -iE "error|fatal|critical" | grep -viE "deprecat|warn|info|health|handshake error|no certificate available" | wc -l)
-    if [ "$ERRORS" -gt 50 ]; then
-        FINDINGS="${FINDINGS}LOGS: ${container}: ${ERRORS} error lines in last 24h\n"
+    TOP=$(docker logs --since 24h "$container" 2>&1 \
+        | grep -iE "error|fatal|critical" \
+        | grep -viE "deprecat|warn|info|health|handshake error|no certificate available" \
+        | sed -E 's/^[0-9]{4}-[0-9-]*T[0-9:.]+Z?[[:space:]]*//; s/0x[0-9a-fA-F]+/0xHEX/g; s/[0-9]+/N/g; s/[[:space:]]+/ /g; s/^ //; s/ $//' \
+        | sort | uniq -c | sort -rn | head -1)
+    COUNT=$(echo "$TOP" | awk '{print $1}'); COUNT=${COUNT:-0}
+    if [ "$COUNT" -gt "$ERROR_SIGNATURE_THRESHOLD" ]; then
+        SIG=$(echo "$TOP" | sed -E 's/^[[:space:]]*[0-9]+[[:space:]]*//' | cut -c1-120)
+        FINDINGS="${FINDINGS}LOGS: ${container}: ${COUNT}x \"${SIG}\" in last 24h\n"
         ALL_OK=false
     fi
 done
